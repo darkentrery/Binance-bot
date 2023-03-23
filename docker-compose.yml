@@ -1,0 +1,20 @@
+version: '3.9'
+
+volumes:
+  postgres_data_binance_bot:
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    container_name: postgres_binance_bot
+    restart: always
+    ports:
+      - "5447:5432"
+    volumes:
+      - postgres_data_binance_bot:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+
+

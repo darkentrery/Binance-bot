@@ -1,0 +1,19 @@
+[Unit]
+Description=gunicorn daemon
+Requires=gunicorn.socket
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/home/ubuntu/Binance-bot
+Environment="PATH=/home/ubuntu/Binance-bot/venv/bin"
+ExecStart=/home/ubuntu/Binance-bot/venv/bin/gunicorn \
+          --access-logfile - \
+          --workers 5 \
+          --timeout 600 \
+          --bind unix:/run/gunicorn.sock \
+          config.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
