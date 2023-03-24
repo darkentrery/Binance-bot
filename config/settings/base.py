@@ -73,7 +73,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-
+    "binance_bot.trades.apps.TradesConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -162,3 +162,7 @@ AUTH_PASSWORD_VALIDATORS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 loguru.logger.add(f"{BASE_DIR}/logs.log", level='DEBUG', format="{time} {level} {message}")
+
+BINANCE_API_KEY = env('BINANCE_API_KEY')
+
+BINANCE_API_SECRET = env('BINANCE_API_SECRET')
