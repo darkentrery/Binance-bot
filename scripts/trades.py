@@ -7,7 +7,7 @@ from loguru import logger
 
 from binance_bot.trades.models import TradingStep, Order, Pair
 from config.settings.base import BINANCE_API_KEY, BINANCE_API_SECRET
-from scripts.grid import OrdersManager
+from scripts.manager import OrdersManager
 
 
 async def set_sell_orders_for_symbol(client: AsyncClient, symbol: str) -> None:
