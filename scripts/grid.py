@@ -5,6 +5,7 @@ from datetime import datetime
 from asgiref.sync import sync_to_async
 from binance.client import AsyncClient
 from django.utils import timezone
+from loguru import logger
 
 from binance_bot.trades.models import Order, TradingStep
 
@@ -159,17 +160,17 @@ class OrdersManager:
     def __init__(self, step: TradingStep, price: float, client: AsyncClient) -> None:
         self.orders = None
         self.step = step
-        # self.orders = step.orders.filter(date_sell=None)
         self.price = price
         self.client = client
 
     async def monitoring_orders(self):
         self.orders = await sync_to_async(lambda: self.step.orders.filter(date_sell=None))()
-        order_list = await sync_to_async(lambda: [order for order in self.orders])()
+        order_list = await sync_to_async(lambda: list(self.orders))()
         for order in order_list:
             await self.monitoring_buy(order)
             await self.monitoring_sell(order)
-        await self.creat_order_buy()
+        if self.step.active:
+            await self.creat_order_buy()
 
     @property
     def open_price(self) -> float:
@@ -200,7 +201,7 @@ class OrdersManager:
     async def creat_order_buy(self) -> None:
         value_buy = self.step.value_buy(self.open_price)
         next_price = round(self.open_price * (1 + self.step.step_float), 2)
-        balance = await self.balance
+        balance = await self.balance()
         if balance > value_buy:
             if not await sync_to_async(lambda: self.orders.filter(price_buy=self.open_price).exists())():
                 # b_order = await self.client.order_limit_buy(
@@ -214,6 +215,7 @@ class OrdersManager:
                 #     value=self.step.value_tokens_buy(self.open_price),
                 #     order_buy=b_order["orderId"]
                 # ))()
+                logger.info(f"Open order for {self.step.pair.name=}, {self.step.value_tokens_buy(self.open_price)=}, {self.open_price=}")
                 pass
             if not await sync_to_async(lambda: self.orders.filter(price_buy=next_price).exists())() and (next_price * 0.999) <= self.price:
                 # b_order = await self.client.order_limit_buy(
@@ -227,6 +229,7 @@ class OrdersManager:
                 #     value=self.step.value_tokens_buy(next_price),
                 #     order_buy=b_order["orderId"]
                 # ))()
+                logger.info(f"Open order for {self.step.pair.name=}, {self.step.value_tokens_buy(next_price)=}, {next_price=}")
                 pass
 
     async def monitoring_buy(self, order: Order) -> None:
@@ -246,7 +249,6 @@ class OrdersManager:
                     order.save()
                 await sync_to_async(sell)()
 
-    @property
     async def balance(self):
         balance_USDT = await self.client.get_asset_balance(asset="USDT")
         return float(balance_USDT["free"])

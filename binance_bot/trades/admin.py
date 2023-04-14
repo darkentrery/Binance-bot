@@ -1,8 +1,11 @@
+import asyncio
+
 from django.contrib import admin
 from django.db import models
 from django.forms import CheckboxSelectMultiple
 
 from binance_bot.trades.models import Pair, TradingStep, Order, Result
+from scripts.trades import set_sell_orders
 
 
 @admin.register(Pair)
@@ -23,6 +26,11 @@ class TradingStepAdmin(admin.ModelAdmin):
         "value",
         "active",
     ]
+    actions = ["set_sell_orders",]
+
+    @admin.action(description="Set exists sell orders")
+    def set_sell_orders(self, request, queryset):
+        asyncio.run(set_sell_orders())
 
 
 @admin.register(Order)
