@@ -34,7 +34,7 @@ class TradingStepAdmin(admin.ModelAdmin):
 
 
 @admin.register(Order)
-class TradingStepAdmin(admin.ModelAdmin):
+class OrderAdmin(admin.ModelAdmin):
     list_display = [
         "step",
         "price_buy",
@@ -46,6 +46,7 @@ class TradingStepAdmin(admin.ModelAdmin):
         "date_buy",
         "date_sell",
     ]
+    list_filter = ["step__pair", "step__step"]
 
 
 @admin.register(Result)
