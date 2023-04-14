@@ -165,7 +165,8 @@ class OrdersManager:
 
     async def monitoring_orders(self):
         self.orders = await sync_to_async(lambda: self.step.orders.filter(date_sell=None))()
-        for order in self.orders:
+        order_list = await sync_to_async(lambda: [order for order in self.orders])()
+        for order in order_list:
             await self.monitoring_buy(order)
             await self.monitoring_sell(order)
         await self.creat_order_buy()
@@ -201,7 +202,7 @@ class OrdersManager:
         next_price = round(self.open_price * (1 + self.step.step_float), 2)
         balance = await self.balance
         if balance > value_buy:
-            if not self.orders.filter(price_buy=self.open_price).exists():
+            if not await sync_to_async(lambda: self.orders.filter(price_buy=self.open_price).exists())():
                 # b_order = await self.client.order_limit_buy(
                 #     symbol=self.step.pair.name,
                 #     quantity=self.step.value_tokens_buy(self.open_price),
@@ -214,7 +215,7 @@ class OrdersManager:
                 #     order_buy=b_order["orderId"]
                 # ))()
                 pass
-            if not self.orders.filter(price_buy=next_price).exists() and (next_price * 0.999) <= self.price:
+            if not await sync_to_async(lambda: self.orders.filter(price_buy=next_price).exists())() and (next_price * 0.999) <= self.price:
                 # b_order = await self.client.order_limit_buy(
                 #     symbol=self.step.pair.name,
                 #     quantity=self.step.value_tokens_buy(next_price),
@@ -249,5 +250,3 @@ class OrdersManager:
     async def balance(self):
         balance_USDT = await self.client.get_asset_balance(asset="USDT")
         return float(balance_USDT["free"])
-
-

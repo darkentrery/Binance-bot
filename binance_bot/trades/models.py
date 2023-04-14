@@ -60,8 +60,8 @@ class Order(models.Model):
     date_create_buy = models.DateTimeField(_("Date And Time of Create Buy Order"), default=timezone.now)
     date_buy = models.DateTimeField(_("Date And Time Buy"), blank=True, null=True)
     date_sell = models.DateTimeField(_("Date And Time Sell"), blank=True, null=True)
-    order_buy = models.PositiveIntegerField(_("Buy Order Id"), blank=True, null=True)
-    order_sell = models.PositiveIntegerField(_("Sell Order Id"), blank=True, null=True)
+    order_buy = models.PositiveBigIntegerField(_("Buy Order Id"), blank=True, null=True)
+    order_sell = models.PositiveBigIntegerField(_("Sell Order Id"), blank=True, null=True)
 
     class Meta:
         verbose_name = "Order"
@@ -113,4 +113,49 @@ class Order(models.Model):
     _price_sell.admin_order_field = "price_buy"
 
 
+class Result(models.Model):
+    name = models.CharField(_("Name"), max_length=50, unique=True)
+    date_from = models.DateTimeField(_("Date From"))
+    date_to = models.DateTimeField(_("Date To"))
+    steps = models.ManyToManyField("trades.TradingStep", related_name="results", blank=True)
 
+    class Meta:
+        verbose_name = "Result"
+        verbose_name_plural = "Results"
+
+    def __str__(self):
+        return f"{self.name} - {self.date_from} - {self.date_to}"
+
+    @property
+    def fee(self):
+        fee = 0
+        for step in self.steps.all():
+            for order in step.orders.exclude(date_sell=None).filter(date_sell__lte=self.date_to,
+                                                                    date_sell__gte=self.date_from):
+                fee += order.fee
+        return fee
+
+    @property
+    def income(self):
+        income = 0
+        for step in self.steps.all():
+            for order in step.orders.exclude(date_sell=None).filter(date_sell__lte=self.date_to,
+                                                                    date_sell__gte=self.date_from):
+                income += (order.value_sell - order.value_buy)
+        return income
+
+    @property
+    def profit(self):
+        return self.income - self.fee
+
+    @admin.display(description="Fee")
+    def _fee(self):
+        return self.fee
+
+    @admin.display(description="Income")
+    def _income(self):
+        return self.income
+
+    @admin.display(description="Profit")
+    def _profit(self):
+        return self.profit
