@@ -54,10 +54,10 @@ class OrdersManager:
         balance = await self.balance()
         if balance > value_buy:
             if not await sync_to_async(lambda: self.orders.filter(price_buy=self.open_price).exists())():
-                # await self.creat_order_buy(self.open_price)
+                await self.creat_order_buy(self.open_price)
                 logger.info(f"Open order for {self.step.pair.name=}, {self.step.value_tokens_buy(self.open_price)=}, {self.open_price=}")
             if not await sync_to_async(lambda: self.orders.filter(price_buy=next_price).exists())() and (next_price * 0.999) <= self.price:
-                # await self.creat_order_buy(next_price)
+                await self.creat_order_buy(next_price)
                 logger.info(f"Open order for {self.step.pair.name=}, {self.step.value_tokens_buy(next_price)=}, {next_price=}")
 
     async def creat_order_buy(self, open_price: float) -> None:
