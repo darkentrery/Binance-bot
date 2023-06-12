@@ -1,3 +1,3 @@
 # Binance-bot
 
-`cd /home/ubuntu`
+`cd /home/ubuntu/Binance-bot`
