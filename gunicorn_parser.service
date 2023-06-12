@@ -4,13 +4,11 @@ Requires=gunicorn_parser.socket
 After=network.target
 
 [Service]
-User=ubuntu
+User=root
 Group=www-data
 WorkingDirectory=/home/ubuntu/Binance-bot
 Environment="PATH=/home/ubuntu/Binance-bot/venv/bin"
-ExecStart=/home/ubuntu/summarizer/venv/bin/python3 /home/ubuntu/Binance-bot/run.py
-Restart=always
-RestartSec=10
+ExecStart=/home/ubuntu/Binance-bot/venv/bin/python3 /home/ubuntu/Binance-bot/run.py
 
 [Install]
 WantedBy=multi-user.target
