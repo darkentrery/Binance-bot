@@ -5,7 +5,7 @@ from asgiref.sync import sync_to_async
 from binance.client import AsyncClient
 from loguru import logger
 
-from binance_bot.trades.models import TradingStep, Order, Pair
+from binance_bot.trades.models import TradingStep, Order, Pair, Range
 from config.settings.base import BINANCE_API_KEY, BINANCE_API_SECRET
 from scripts.manager import OrdersManager
 
@@ -49,6 +49,14 @@ async def trade() -> None:
             for step in steps:
                 symbol = await sync_to_async(lambda: step.pair.name)()
                 price = float((await client.get_symbol_ticker(symbol=symbol))["price"])
+                ranges = await sync_to_async(lambda: Range.objects.filter(
+                    pair__name=symbol,
+                    min_value__lte=price,
+                    max_value__gte=price,
+                    active=True
+                ).exists())()
+                if not ranges:
+                    continue
                 manager = OrdersManager(step, price, client)
                 await manager.monitoring_orders()
     except Exception as e:

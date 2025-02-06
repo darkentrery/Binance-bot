@@ -53,6 +53,21 @@ class TradingStep(models.Model):
         return round(self.value_tokens_buy(price) * price, 6)
 
 
+class Range(models.Model):
+    pair = models.ForeignKey(Pair, on_delete=models.CASCADE, related_name="ranges")
+    min_value = models.FloatField(_("Min Trade Value"))
+    max_value = models.FloatField(_("Max Trade Value"))
+    active = models.BooleanField(_("Is Active"), default=False)
+
+    class Meta:
+        verbose_name = "Range"
+        verbose_name_plural = "Ranges"
+        unique_together = ["pair", "min_value", "max_value"]
+
+    def __str__(self):
+        return f"{self.pair.name} - {self.min_value} - {self.max_value}"
+
+
 class Order(models.Model):
     step = models.ForeignKey(TradingStep, on_delete=models.CASCADE, related_name="orders")
     price_buy = models.FloatField(_("Price Buy"))
