@@ -49,16 +49,14 @@ async def trade() -> None:
             for step in steps:
                 symbol = await sync_to_async(lambda: step.pair.name)()
                 price = float((await client.get_symbol_ticker(symbol=symbol))["price"])
-                ranges = await sync_to_async(lambda: Range.objects.filter(
+                buy = await sync_to_async(lambda: Range.objects.filter(
                     pair__name=symbol,
                     min_value__lte=price,
                     max_value__gte=price,
                     active=True
                 ).exists())()
-                if not ranges:
-                    continue
                 manager = OrdersManager(step, price, client)
-                await manager.monitoring_orders()
+                await manager.monitoring_orders(buy)
     except Exception as e:
         logger.error(e)
         await client.close_connection()

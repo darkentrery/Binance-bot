@@ -13,13 +13,13 @@ class OrdersManager:
         self.price = price
         self.client = client
 
-    async def monitoring_orders(self):
+    async def monitoring_orders(self, buy: bool) -> None:
         self.orders = await sync_to_async(lambda: self.step.orders.filter(date_sell=None))()
         order_list = await sync_to_async(lambda: list(self.orders))()
         for order in order_list:
             await self.monitoring_buy(order)
             await self.monitoring_sell(order)
-        if self.step.active:
+        if self.step.active and buy:
             await self.monitoring_creat_order_buy()
 
     @property
